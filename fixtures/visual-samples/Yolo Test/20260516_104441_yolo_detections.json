@@ -1,0 +1,95 @@
+{
+  "stream_url_mask": "rtmp://10.148.1.22/live/test",
+  "counts": {
+    "worker": 3,
+    "machinery": 1
+  },
+  "detections": {
+    "worker": [
+      {
+        "model": "worker",
+        "source": "stream",
+        "class_id": 7,
+        "class_name": "Safety Vest",
+        "confidence": 0.8389,
+        "bbox_xyxy": [
+          605.22,
+          247.1,
+          621.99,
+          273.7
+        ],
+        "bbox_xywh": [
+          605.22,
+          247.1,
+          16.77,
+          26.6
+        ]
+      },
+      {
+        "model": "worker",
+        "source": "stream",
+        "class_id": 0,
+        "class_name": "Hardhat",
+        "confidence": 0.7956,
+        "bbox_xyxy": [
+          608.27,
+          234.29,
+          624.24,
+          245.63
+        ],
+        "bbox_xywh": [
+          608.27,
+          234.29,
+          15.98,
+          11.34
+        ]
+      },
+      {
+        "model": "worker",
+        "source": "stream",
+        "class_id": 5,
+        "class_name": "Person",
+        "confidence": 0.4791,
+        "bbox_xyxy": [
+          598.03,
+          234.03,
+          632.33,
+          304.38
+        ],
+        "bbox_xywh": [
+          598.03,
+          234.03,
+          34.3,
+          70.36
+        ]
+      }
+    ],
+    "machinery": [
+      {
+        "model": "machinery",
+        "source": "stream",
+        "class_id": 0,
+        "class_name": "excavator",
+        "confidence": 0.8657,
+        "bbox_xyxy": [
+          476.9,
+          75.07,
+          545.64,
+          120.04
+        ],
+        "bbox_xywh": [
+          476.9,
+          75.07,
+          68.74,
+          44.97
+        ]
+      }
+    ]
+  },
+  "saved": {
+    "raw": "E:\\3311 AI\\Yolo Test\\20260516_104441_frame_raw.jpg",
+    "image": "E:\\3311 AI\\Yolo Test\\20260516_104441_yolo_image.jpg",
+    "image_human": "E:\\3311 AI\\Yolo Test\\20260516_104441_yolo_image-human.jpg",
+    "image_machine": "E:\\3311 AI\\Yolo Test\\20260516_104441_yolo_image-machine.jpg"
+  }
+}

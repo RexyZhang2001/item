@@ -1,0 +1,29 @@
+VLM-Detection HiAgent Bundle — file manifest (2026-05-15)
+
+HANDOFF_交接说明.md
+MANIFEST.txt
+DEPLOY.txt
+USE.txt
+config.yaml
+detect_core.py
+detect.py
+hiagent_api.py
+verify_weights.py
+openapi.yaml
+requirements.txt
+requirements-api.txt
+setup_env.ps1
+run_api.ps1
+run_detect.ps1
+run_detect.bat
+Dockerfile
+.gitignore
+scripts/redownload_weights.py
+weights/worker/yolo26x_worker.pt
+weights/worker/class_names.txt
+weights/machinery/yolo26l_machinery.pt
+weights/machinery/class_names.txt
+input/demo.jpg
+input/.gitkeep
+
+Excluded from zip: .venv, output/, weights/*_hf/, input/.cache/

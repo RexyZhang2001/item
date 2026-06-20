@@ -1,0 +1,29 @@
+VLM-Detection — 工地双模型 YOLO 推理（仅检测，不训练）
+
+权重（已下载）
+  weights/worker/yolo26x_worker.pt      工人/PPE（YOLO26x，~113 MB）
+  weights/machinery/yolo26l_machinery.pt  8类机械（YOLO26-L，~51 MB）
+
+环境（conda，推荐）
+  powershell -ExecutionPolicy Bypass -File setup_env.ps1
+  conda activate vlm_detection
+  python verify_weights.py
+
+检测
+  把图片放进 input/
+  python detect.py --source input --save-img --export-json
+  或: powershell -ExecutionPolicy Bypass -File run_detect.ps1
+
+输出
+  output/images/     标注图
+  output/detections_*.json
+
+HiAgent HTTP 插件（部署到云服务器）
+  本地联调: powershell -File run_api.ps1
+  部署说明: DEPLOY.txt
+  OpenAPI:  openapi.yaml（导入 HiAgent 前改 servers.url）
+  接口: POST /v1/detect/triple/json  返回 images[0..2]=原图/human/machine
+
+注意
+  勿用项目内 .venv 装 torch（本机易 DLL 失败）；用 conda vlm_detection。
+  权重只放服务器；HiAgent 只登记 HTTPS API，不上传 .pt。

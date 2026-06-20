@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: VLM-Detection HiAgent Plugin
+  description: |
+    v2：对齐 VLM-Detection 视觉安全巡检智能体规格。
+    - 图片：JSON / multipart，返回 base64 三图 + detections。
+    - 视频流：JSON 传入 RTMP/HLS/FLV，抽单帧，生成 {job_id}_image.png 等三图；
+      配置 MinIO 或本地 ARTIFACT_ROOT 时返回 image / image_human / image_machine URL。
+  version: 2.0.0
+servers:
+  - url: https://your-server.example.com
+    description: 替换为云服务器 HTTPS 地址
+paths:
+  /v1/analyze/stream:
+    post:
+      operationId: analyzeStream
+      summary: 视频流抽帧 + 三图上传（推荐工作流连 HTTP 节点）
+      description: |
+        连接 stream_url，抽取一帧，YOLO 双模型推理，输出检测 JSON；
+        同时上传三张 PNG（image / image-human / image-machine 命名）。
+        无对象存储且未设置 ARTIFACT_ROOT 时，默认返回 images base64；也可 include_base64=true 在已有 URL 时附加 base64。
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StreamAnalyzeRequest"
+      responses:
+        "200":
+          description: 分析成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamAnalyzeResponse"
+        "400":
+          description: 参数错误
+        "401":
+          description: API Key 无效
+        "502":
+          description: 无法打开视频流或读帧失败
+  /health:
+    get:
+      operationId: healthCheck
+      summary: 健康检查
+      responses:
+        "200":
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /v1/detect/triple/json:
+    post:
+      operationId: detectTripleJson
+      summary: 双模型检测（JSON，推荐 HiAgent）
+      description: 通过 image_url 或 image_base64 传入图片，返回固定顺序三张图及检测框 JSON。
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectJsonRequest"
+      responses:
+        "200":
+          description: 检测成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectTripleResponse"
+        "400":
+          description: 参数或图片错误
+        "401":
+          description: API Key 无效
+  /v1/detect/triple:
+    post:
+      operationId: detectTripleMultipart
+      summary: 双模型检测（文件上传）
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 待检测图片
+                conf:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 1
+                imgsz:
+                  type: integer
+                  minimum: 320
+                  maximum: 1280
+      responses:
+        "200":
+          description: 检测成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectTripleResponse"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    StreamAnalyzeRequest:
+      type: object
+      required:
+        - stream_url
+      properties:
+        stream_url:
+          type: string
+          description: RTMP / HLS / m3u8 / FLV 等 OpenCV 可解码地址
+        conf:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        imgsz:
+          type: integer
+          minimum: 320
+          maximum: 1280
+        preprocess_resize:
+          type: boolean
+          default: true
+        enhance_contrast:
+          type: boolean
+          default: true
+        retries:
+          type: integer
+          minimum: 1
+          maximum: 30
+          default: 8
+        retry_delay:
+          type: number
+          format: float
+          default: 2
+        warmup:
+          type: number
+          format: float
+          default: 0.5
+        include_base64:
+          type: boolean
+          default: false
+    StreamAnalyzeResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        job_id:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+          description: 原图 PNG 访问地址（MinIO 或本地静态）
+        image_human:
+          type: string
+          format: uri
+          nullable: true
+        image_machine:
+          type: string
+          format: uri
+          nullable: true
+        storage:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum: [minio, local, none]
+            detail:
+              type: object
+        detections:
+          type: object
+        counts:
+          type: object
+        images:
+          type: array
+          description: storage.mode=none 或 include_base64=true 时出现
+          items:
+            type: object
+    DetectJsonRequest:
+      type: object
+      properties:
+        image_base64:
+          type: string
+          description: 图片 Base64（与 image_url 二选一）
+        image_url:
+          type: string
+          format: uri
+          description: 图片公网 URL（与 image_base64 二选一）
+        conf:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        imgsz:
+          type: integer
+          minimum: 320
+          maximum: 1280
+    DetectTripleResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        images:
+          type: array
+          description: 固定顺序 [original, human, machine]
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [original, human, machine]
+              mime:
+                type: string
+              base64:
+                type: string
+        detections:
+          type: object
+          properties:
+            worker:
+              type: array
+              items:
+                type: object
+            machinery:
+              type: array
+              items:
+                type: object
+        counts:
+          type: object
+          properties:
+            worker:
+              type: integer
+            machinery:
+              type: integer

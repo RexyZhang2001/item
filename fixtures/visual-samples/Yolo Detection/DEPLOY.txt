@@ -1,0 +1,82 @@
+VLM-Detection HiAgent HTTP 插件 — 云服务器部署说明（v2）
+
+一、插件形态
+  插件 = 部署在 Linux 云上的 HTTPS 接口 + openapi.yaml。
+  耀耀工厂 / HiAgent：登记 Base URL 与 OpenAPI，不在平台上传 .pt 权重。
+
+二、代码与权重（随 Docker 打包）
+  hiagent_api.py、detect_core.py、stream_capture.py、artifact_storage.py、config.yaml
+  weights/worker/yolo26x_worker.pt、weights/machinery/yolo26l_machinery.pt
+
+二点五、Linux 云服务器脚本形式（无 Docker 时用）
+  将「Yolo Detection」整目录上传到服务器（含 weights/、config.yaml）。
+  chmod +x scripts/*.sh
+
+  仅流抽帧 + YOLO 检测所需库:
+    bash scripts/setup_linux.sh
+  再额外装 HTTP 插件（FastAPI / uvicorn / minio 等）:
+    bash scripts/setup_linux.sh api
+
+  激活环境:  source .venv/bin/activate
+  测流（默认输出到 output/stream_test）:
+    ./scripts/run_stream_detect.sh 'rtmp://x.x.x.x/live/test'
+  指定输出目录:  OUT_DIR=/data/vlm_out ./scripts/run_stream_detect.sh 'rtmp://...'
+  只抽帧不跑 YOLO:  STREAM_ONLY=1 ./scripts/run_stream_detect.sh 'rtmp://...'
+
+  启动插件 API（需先 setup_linux.sh api）:
+    HIAGENT_API_KEY=你的密钥 ./scripts/run_api.sh
+  默认 0.0.0.0:8080，改端口: PORT=8081 ./scripts/run_api.sh
+
+  MCP 插件（耀耀工厂「接入 MCP 插件」表单）:
+    依赖: bash scripts/setup_linux.sh mcp
+    详情: MCP_PLUGIN.txt（STDIO 填 python -u mcp_vlm_server.py 的路径；HTTP 见 run_mcp_http.sh）
+
+  说明: setup_linux.sh 默认会 sudo apt-get 安装 ffmpeg、python3-venv 等；
+  无 root 或不想动系统包时，可自行装好 python3/venv/ffmpeg 后设 INSTALL_APT=0 bash scripts/setup_linux.sh
+
+三、Docker 单容器
+  cd Yolo Detection
+  docker build -t vlm-detection-api .
+
+  docker run -d --name vlm-api -p 8080:8080 \
+    -e HIAGENT_API_KEY=你的密钥 \
+    -e ARTIFACT_ROOT=/app/artifacts \
+    -e PUBLIC_BASE_URL=https://detect.yourcompany.com \
+    vlm-detection-api
+
+  反代 HTTPS：Nginx/Caddy 将 https://detect.yourcompany.com 转到 127.0.0.1:8080
+  PUBLIC_BASE_URL 需与对外 HTTPS 一致，以便 /v1/analyze/stream 返回可访问的图片 URL。
+
+四、Docker Compose（API + MinIO，可选）
+  docker compose up -d
+  默认 MINIO 控制台 http://127.0.0.1:9001 ；生产请改为云厂商对象存储或给 MinIO 绑定域名，
+  并设置 MINIO_PUBLIC_URL 为公网可访问前缀（否则预签名 URL 也可供工作流短期使用）。
+
+五、MinIO / 对象存储环境变量（视频流三图 URL）
+  MINIO_ENDPOINT   如 minio:9000
+  MINIO_ACCESS_KEY  MINIO_SECRET_KEY  MINIO_BUCKET
+  MINIO_SECURE     true/false
+  MINIO_PUBLIC_URL 可选，公网直链前缀（含路径），与 bucket 策略一致
+  MINIO_OBJECT_PREFIX 可选，默认 vlm
+
+六、耀耀工厂 / HiAgent 注册
+  1. 创建「API 类型」插件
+  2. Base URL: https://detect.yourcompany.com
+  3. 导入 openapi.yaml（servers.url 改为你的域名；版本 2.0.0）
+  4. 鉴权: Header X-API-Key = HIAGENT_API_KEY
+  5. 视频流巡检工作流：选用 analyzeStream（POST /v1/analyze/stream）
+  6. 仅图片检测：detectTripleJson 或 detectTripleMultipart
+
+七、接口一览
+  GET  /health
+  POST /v1/analyze/stream       body: { "stream_url": "rtmp://..." } → image / image_human / image_machine URL + detections
+  POST /v1/detect/triple/json   body: image_url 或 image_base64 → base64 三图
+  POST /v1/detect/triple        multipart file
+
+  图片接口返回 images 顺序: original → human → machine
+
+八、本地联调
+  pip install -r requirements-api.txt
+  pip install -r requirements.txt
+  powershell -File run_api.ps1
+  浏览器打开 http://127.0.0.1:8080/docs

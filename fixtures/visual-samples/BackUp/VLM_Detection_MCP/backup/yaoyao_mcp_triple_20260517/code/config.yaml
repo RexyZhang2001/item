@@ -1,0 +1,43 @@
+# VLM-Detection 推理配置（仅检测，不训练）
+
+models:
+  worker: weights/worker/yolo26x_worker.pt
+  machinery: weights/machinery/yolo26l_machinery.pt
+
+inference:
+  imgsz: 640
+  conf: 0.25
+  device: ""  # 空=自动；cpu / 0 / 0,1
+
+# 工人模型：仅保留人员与 PPE 相关类别（可按需增删）
+worker_classes:
+  - 5   # Person
+  - 0   # Hardhat
+  - 2   # NO-Hardhat
+  - 7   # Safety Vest
+  - 4   # NO-Safety Vest
+  - 1   # Mask
+  - 3   # NO-Mask
+
+worker_class_names:
+  0: Hardhat
+  1: Mask
+  2: NO-Hardhat
+  3: NO-Mask
+  4: NO-Safety Vest
+  5: Person
+  6: Safety Cone
+  7: Safety Vest
+  8: machinery
+  9: utility pole
+  10: vehicle
+
+machinery_class_names:
+  0: excavator
+  1: dump_truck
+  2: bulldozer
+  3: wheel_loader
+  4: mobile_crane
+  5: tower_crane
+  6: roller_compactor
+  7: cement_mixer

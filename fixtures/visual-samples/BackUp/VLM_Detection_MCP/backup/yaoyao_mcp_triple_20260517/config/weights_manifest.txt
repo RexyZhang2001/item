@@ -1,0 +1,5 @@
+# 权重文件清单（备份时不复制 pt，仍使用原路径）
+-rw-r--r-- 1 root root  51M May 16 13:59 /root/VLM_Detection_MCP/VLM_Detection_MCP/weights/machinery/yolo26l_machinery.pt
+-rw-r--r-- 1 root root 113M May 16 14:00 /root/VLM_Detection_MCP/VLM_Detection_MCP/weights/worker/yolo26x_worker.pt
+f01319225ad83b53e7f13191d82251096e1dcf8c4eee4e384dfe85469ef21c5e  /root/VLM_Detection_MCP/VLM_Detection_MCP/weights/worker/yolo26x_worker.pt
+ce1fb6dfb686709724eb354313a62d5661d371dc34712034e9cf0adc636af12f  /root/VLM_Detection_MCP/VLM_Detection_MCP/weights/machinery/yolo26l_machinery.pt

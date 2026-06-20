@@ -1,0 +1,19 @@
+[Unit]
+Description=VLM RTMP YOLO MCP (Streamable HTTP)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vlm-yolo
+Environment=MCP_TRANSPORT=streamable-http
+Environment=MCP_HTTP_HOST=0.0.0.0
+Environment=MCP_HTTP_PORT=8000
+Environment=MCP_PUBLIC_URL=http://10.148.1.22:8000
+Environment=MCP_BEARER_TOKEN=请改成你的密钥
+ExecStart=/root/vlm-yolo/.venv/bin/python -u /root/vlm-yolo/mcp_vlm_server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

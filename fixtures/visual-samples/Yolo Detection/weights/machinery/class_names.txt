@@ -1,0 +1,8 @@
+excavator
+dump_truck
+bulldozer
+wheel_loader
+mobile_crane
+tower_crane
+roller_compactor
+cement_mixer

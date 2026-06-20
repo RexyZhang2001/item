@@ -1,0 +1,77 @@
+接入「MCP 插件」表单填写说明（VLM 视频流 + YOLO）
+
+一、插件在做什么
+  MCP = 主机（大模型 / 平台）起一个子进程或通过 HTTP/SSE 连到你的服务，
+  按协议调用你注册的「工具」(tools)。本项目文件：Yolo Detection/mcp_vlm_server.py
+  暴露工具：
+    • ping — 存活检测
+    • detect_rtmp_stream — 输入 stream_url 字符串，拉流一帧 + YOLO；默认返回 JSON，
+      内含 images_base64.image / image_human / image_machine（三张 JPEG base64）及 detections。
+      可选 return_urls=true + 配置 MinIO/ARTIFACT，额外返回三张图 URL（适合大图、减轻单次消息体积）。
+
+二、服务器上要装的库（Linux）
+  cd Yolo Detection
+  source .venv/bin/activate
+  pip install -r requirements-mcp.txt
+  （已含 requirements.txt：torch、ultralytics、opencv 等）
+  系统建议：ffmpeg、python3-venv（与 setup_linux.sh 一致）
+
+三、传输方式怎么选（STDIO / SSE / Streamable HTTP）
+
+  你的场景：输入 = RTMP 地址字符串，输出 = 三张检测结果图（+ JSON 框）。
+
+  建议优先采用下面「场景 → 传输方式」对照：
+
+  • 插件跑在 Linux 云服务器，耀耀工厂 / 浏览器 / 网关远程连过来（最常见）
+    → 首选 **Streamable HTTP**：用 URL 注册 MCP，Nginx 做 HTTPS；单次响应可承载较大 JSON
+      （仍注意控制 JPEG 质量，或通过 return_urls 走对象存储）。
+
+  • 平台明确要求 **SSE**（长连接、服务端推送）
+    → 选 **SSE**，按厂商文档填端点（常见 /sse）。
+
+  • 插件与宿主在同一台机，由宿主「拉起子进程」对话（如本地调试、部分桌面客户端）
+    → 选 **STDIO**；注意三张图 base64 会使单次消息变大，超大时改用 return_urls 或降低 VLM_JPEG_QUALITY。
+
+  小结：云端对外服务、又要稳定传三图 → **Streamable HTTP**；纯本机子进程 → **STDIO**。
+  **SSE** 仅在平台规定或需要事件流时用，不是默认必选项。
+
+  ── 各方式配置要点 ──
+  1) STDIO
+     • 主机子进程：stdin/stdout 走 MCP 协议，不能把日志打到 stdout。
+     • 表单若只有「命令」：不要用 npx，应指向当前虚拟环境里的 Python。
+     • 示例命令（请改成你的绝对路径）：
+         /home/ubuntu/vlm/Yolo Detection/.venv/bin/python -u /home/ubuntu/vlm/Yolo Detection/mcp_vlm_server.py
+     • Windows 示例：
+         "E:\3311 AI\Yolo Detection\.venv\Scripts\python.exe" -u "E:\3311 AI\Yolo Detection\mcp_vlm_server.py"
+     • 工作目录（若平台支持）：设为 Yolo Detection，以便加载 config.yaml、weights/
+
+  2) Streamable HTTP / SSE（适合云平台远程插件）
+     • 先在云端常驻进程：
+         export MCP_TRANSPORT=streamable-http
+         export MCP_HTTP_HOST=0.0.0.0
+         export MCP_HTTP_PORT=8000
+         python -u mcp_vlm_server.py
+     • 默认 MCP 路径多为 /mcp（见 FastMCP streamable_http_path），前端填：
+         http://你的服务器:8000/mcp
+     • 前面用 Nginx/Caddy 做 HTTPS 与鉴权。
+     • 若表单选 SSE，设 MCP_TRANSPORT=sse 并查平台文档里的路径（常为 /sse）。
+
+四、环境变量（在表单「环境变量」里可加）
+  VLM_DEFAULT_STREAM     默认 rtmp 地址，detect_rtmp_stream 的 stream_url 可留空时用
+  VLM_CONFIG             config.yaml 绝对路径（可选）
+  VLM_STREAM_RETRIES     拉流重试次数，默认 10
+  VLM_STREAM_RETRY_DELAY 秒，默认 2
+  VLM_STREAM_WARMUP      冲刷缓冲秒数，默认 0.5
+  VLM_JPEG_QUALITY       JPEG 质量 1–100，默认 82，降低可减小 MCP 返回体
+  MCP_TRANSPORT          stdio | streamable-http | sse，默认 stdio
+  MCP_HTTP_HOST          HTTP/SSE 监听地址，默认 127.0.0.1
+  MCP_HTTP_PORT          默认 8000
+
+五、与「HTTP 插件 / openapi」的区别
+  • MCP：给支持 MCP 的客户端暴露 tools（结构化调用 + 说明），适合智能体编排。
+  • 之前的 FastAPI + openapi.yaml：普通 REST，工作流「HTTP 请求节点」直连。
+  两者可并存：同一台机子 REST 给旧工作流，MCP 给新平台。
+
+六、自检
+  在 Yolo Detection 下：python -c "import mcp_vlm_server; print('import ok')"
+  用 MCP Inspector 测 STDIO：由官方文档选择 local command 启动上述 python -u …

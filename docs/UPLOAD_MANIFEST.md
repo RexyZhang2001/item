@@ -69,13 +69,24 @@
 
 ---
 
-## YOLO 权重下载说明（同事本地执行）
+## YOLO 权重（已纳入 Git LFS）
 
-将权重放到：
+权重位于仓库内：
 
 ```text
-vlm-detection/weights/worker/yolo26x_worker.pt
-vlm-detection/weights/machinery/yolo26l_machinery.pt
+vlm-detection/weights/worker/yolo26x_worker.pt      (~113 MB, Git LFS)
+vlm-detection/weights/machinery/yolo26l_machinery.pt (~51 MB, Git LFS)
 ```
 
-来源：项目负责人本地 `J:\China Oversea  Final\VLM Detection\weights\`（或 `VLMDetection\weights\`）
+同事 clone 后需安装 Git LFS：
+
+```powershell
+git lfs install
+git clone https://github.com/ZTX-666/item.git
+```
+
+本地来源（上传脚本自动复制）：
+
+```text
+J:\China Oversea  Final\VLM Detection\weights\
+```

@@ -1,0 +1,10 @@
+.venv/
+.mcp_local.env
+logs/
+output/mcp_artifacts/
+__pycache__/
+*.pyc
+output/
+weights/worker_hf/
+weights/machinery_hf/
+.DS_Store

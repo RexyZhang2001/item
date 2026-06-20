@@ -86,29 +86,29 @@ function Invoke-RepoGit {
   & git -c "safe.directory=$Root" @GitArgs
 }
 
+# Use directory adds only — avoid Chinese filenames in git CLI (PowerShell encoding bug)
 Invoke-RepoGit add .gitignore docs fixtures external open-source-references `
-  whatsapp-archive frontend-ui-prototype `
-  docs/UPLOAD_MANIFEST.md docs/product `
-  CODE_RELATIONSHIP_GRAPH.md CODE_RELATIONSHIP_GRAPH_2026-06-20.md `
-  CODE_ARCHITECTURE_SEARCH_INDEX.md PRODUCT_HANDOFF.md FINAL_VERSIONS.md `
-  CORE_CODE_MIGRATION_2026-06-17.md CHITONGLINGXUN_MIGRATION_RUNBOOK.md `
-  飞书机器人五阶段实施工具清单.md 赤瞳安全智能平台_产品介绍_v2.md `
-  赤瞳安全智能平台_产品技术方案.md 赤瞳安全智能平台_完成度差距与开发路线_2026-06-20.md `
-  赤瞳守护者_RTMP+YOLO+VLM_实施指引.md 赤瞳守护者_零上下文接手开发手册.md `
-  耀耀慧读_赤瞳中台对接交接文档.md 耀耀慧读结构化输入接入实施指令.md `
-  PaddleOCRSharp项目代码深度解析.md 萤石云RTMP取流问题诊断与解决方案.md `
-  闪闪文档赤瞳通宵工作完整总结_2026-06-19.md 2>$null
+  whatsapp-archive frontend-ui-prototype scripts/github-upload-batch2.ps1
+Get-ChildItem -Path $Root -File -Filter '*.md' | ForEach-Object { Invoke-RepoGit add -- $_.FullName }
 
 # Verify no secrets staged
 $bad = Invoke-RepoGit diff --cached --name-only | Select-String -Pattern '\.env$|\.pt$|auth\.json|RTMP赤瞳守护者_迁移交接文档_2026-06-20\.md$'
 if ($bad) { throw "Blocked sensitive files: $bad" }
+
+Invoke-RepoGit fetch origin main
 
 $env:GIT_AUTHOR_NAME = 'ZTX-666'
 $env:GIT_AUTHOR_EMAIL = 'ZTX-666@users.noreply.github.com'
 $env:GIT_COMMITTER_NAME = 'ZTX-666'
 $env:GIT_COMMITTER_EMAIL = 'ZTX-666@users.noreply.github.com'
 
-Invoke-RepoGit commit -m "Add batch2: docs, WhatsApp archive, UI prototype, external OCR/depth refs"
+$staged = @(Invoke-RepoGit diff --cached --name-only)
+if ($staged.Count -eq 0) {
+  Write-Host "==> Nothing new to commit. Remote may already be up to date."
+} else {
+  Invoke-RepoGit commit -m "Add batch2: docs, WhatsApp archive, UI prototype, external OCR/depth refs"
+}
+
 Invoke-RepoGit push origin main
 
 Write-Host "==> Done. Verify: https://github.com/ZTX-666/item"

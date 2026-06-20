@@ -1,0 +1,80 @@
+2026-05-16 17:49:49,109 INFO Processing request of type PingRequest
+2026-05-16 17:49:49,113 INFO Processing request of type PingRequest
+2026-05-16 17:49:49,117 INFO Processing request of type ListToolsRequest
+2026-05-16 17:49:55,751 INFO Created new transport with session ID: e8bf475679d748a1b8c95fc7a2bcd6b8
+2026-05-16 17:49:55,776 INFO Processing request of type PingRequest
+2026-05-16 17:49:55,783 INFO Processing request of type CallToolRequest
+2026-05-16 17:49:55,783 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:50:03,186 INFO rtmp_triple_analyze done delivery=json_url elapsed=7.4s json_bytes=931
+2026-05-16 17:50:23,347 INFO Created new transport with session ID: 5bc86e1f239e4628895617b93b3d5b79
+2026-05-16 17:50:23,403 INFO Processing request of type PingRequest
+2026-05-16 17:50:23,407 INFO Processing request of type CallToolRequest
+2026-05-16 17:50:23,407 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:50:28,541 INFO rtmp_triple_analyze done delivery=json_url elapsed=5.1s json_bytes=931
+2026-05-16 17:51:33,890 INFO Created new transport with session ID: 1c5c33a25ac84eefad27f24688cf315f
+2026-05-16 17:51:33,944 INFO Processing request of type PingRequest
+2026-05-16 17:51:33,952 INFO Processing request of type CallToolRequest
+2026-05-16 17:51:33,952 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:51:40,560 INFO rtmp_triple_analyze done delivery=json_url elapsed=6.6s json_bytes=931
+2026-05-16 17:52:00,126 INFO Terminating session: 3a528747e62a400992023f659a302c33
+2026-05-16 17:53:26,838 INFO Created new transport with session ID: d110a3912fee465983d6df6bffba4e31
+2026-05-16 17:53:26,890 INFO Processing request of type PingRequest
+2026-05-16 17:53:26,896 INFO Processing request of type PingRequest
+2026-05-16 17:53:26,899 INFO Processing request of type CallToolRequest
+2026-05-16 17:53:26,899 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:53:30,967 INFO rtmp_triple_analyze done delivery=json_url elapsed=4.1s json_bytes=931
+2026-05-16 17:56:26,730 INFO Created new transport with session ID: 850461d0076b432d9c4c929bf033c35d
+2026-05-16 17:56:26,740 INFO Processing request of type PingRequest
+2026-05-16 17:56:26,745 INFO Processing request of type PingRequest
+2026-05-16 17:56:26,750 INFO Processing request of type ListToolsRequest
+2026-05-16 17:56:32,449 INFO Created new transport with session ID: 0f14aa9ff1ef49dab8fcd92d9f43154b
+2026-05-16 17:56:32,473 INFO Processing request of type PingRequest
+2026-05-16 17:56:32,477 INFO Processing request of type CallToolRequest
+2026-05-16 17:56:32,478 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:56:37,278 INFO rtmp_triple_analyze done delivery=json_url elapsed=4.8s json_bytes=931
+2026-05-16 17:58:15,052 INFO Created new transport with session ID: 1586c9857d584062923a89805d3afe6d
+2026-05-16 17:58:15,109 INFO Processing request of type PingRequest
+2026-05-16 17:58:15,115 INFO Processing request of type CallToolRequest
+2026-05-16 17:58:15,115 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 17:58:19,214 INFO rtmp_triple_analyze done delivery=json_url elapsed=4.1s json_bytes=931
+2026-05-16 18:00:00,126 INFO Terminating session: 6980bcac015c4f4787c63df0cc5d069f
+2026-05-16 18:00:00,127 INFO Terminating session: e8bf475679d748a1b8c95fc7a2bcd6b8
+2026-05-16 18:00:34,784 INFO Created new transport with session ID: 237c779ac0104795a8b382fdc1d5eb5e
+2026-05-16 18:00:34,833 INFO Processing request of type PingRequest
+2026-05-16 18:00:34,838 INFO Processing request of type CallToolRequest
+2026-05-16 18:00:34,839 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 18:00:38,998 INFO rtmp_triple_analyze done delivery=json_url elapsed=4.2s json_bytes=931
+2026-05-16 18:01:00,124 INFO Terminating session: 5bc86e1f239e4628895617b93b3d5b79
+2026-05-16 18:02:11,999 INFO Terminating session: 1c5c33a25ac84eefad27f24688cf315f
+2026-05-16 18:02:43,473 INFO Created new transport with session ID: b071bcdfd669497bbf0ecc703d0a758b
+2026-05-16 18:02:43,535 INFO Processing request of type PingRequest
+2026-05-16 18:02:43,540 INFO Processing request of type PingRequest
+2026-05-16 18:02:43,543 INFO Processing request of type CallToolRequest
+2026-05-16 18:02:43,543 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 18:02:50,521 INFO rtmp_triple_analyze done delivery=json_url elapsed=7.0s json_bytes=931
+2026-05-16 18:03:37,739 INFO Created new transport with session ID: b0e871ad21604c84b050abc7ef105cdd
+2026-05-16 18:03:37,799 INFO Processing request of type PingRequest
+2026-05-16 18:03:37,804 INFO Processing request of type CallToolRequest
+2026-05-16 18:03:37,804 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 18:03:41,538 INFO rtmp_triple_analyze done delivery=json_url elapsed=3.7s json_bytes=931
+2026-05-16 18:04:00,127 INFO Terminating session: d110a3912fee465983d6df6bffba4e31
+2026-05-16 18:04:25,506 INFO Created new transport with session ID: 0e6ae22704f047f08de47ed24898e1a4
+2026-05-16 18:04:25,558 INFO Processing request of type PingRequest
+2026-05-16 18:04:25,562 INFO Processing request of type PingRequest
+2026-05-16 18:04:25,567 INFO Processing request of type CallToolRequest
+2026-05-16 18:04:25,568 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 18:04:32,154 INFO rtmp_triple_analyze done delivery=json_url elapsed=6.6s json_bytes=931
+2026-05-16 18:07:00,129 INFO Terminating session: 850461d0076b432d9c4c929bf033c35d
+2026-05-16 18:07:00,129 INFO Terminating session: 0f14aa9ff1ef49dab8fcd92d9f43154b
+2026-05-16 18:07:13,402 INFO Created new transport with session ID: eb7a5ddc7ba642cab58f823953b60292
+2026-05-16 18:07:15,277 INFO Processing request of type PingRequest
+2026-05-16 18:07:15,282 INFO Processing request of type PingRequest
+2026-05-16 18:07:15,286 INFO Processing request of type CallToolRequest
+2026-05-16 18:07:15,286 INFO rtmp_triple_analyze start url=rtmp://10.148.1.22/live/test delivery=json_url
+2026-05-16 18:07:21,857 INFO rtmp_triple_analyze done delivery=json_url elapsed=6.6s json_bytes=931
+2026-05-16 18:09:00,127 INFO Terminating session: 1586c9857d584062923a89805d3afe6d
+2026-05-16 18:11:00,123 INFO Terminating session: 237c779ac0104795a8b382fdc1d5eb5e
+2026-05-16 18:13:00,125 INFO Terminating session: b071bcdfd669497bbf0ecc703d0a758b
+2026-05-16 18:14:00,128 INFO Terminating session: b0e871ad21604c84b050abc7ef105cdd
+2026-05-16 18:15:00,128 INFO Terminating session: 0e6ae22704f047f08de47ed24898e1a4
+2026-05-16 18:18:00,126 INFO Terminating session: eb7a5ddc7ba642cab58f823953b60292

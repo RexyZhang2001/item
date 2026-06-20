@@ -1,0 +1,55 @@
+VLM_Detection_MCP 交付清单（上传时整包拷贝，勿漏 weights）
+
+【必读文档】
+  00_从这里开始_README.md
+  对话与后续步骤_交接.md
+  YAoyao_MCP_STREAMABLE.md
+  FILE_LIST.txt
+
+【MCP 核心】
+  mcp_vlm_server.py
+  rtmp_pipeline.py
+  detect_core.py
+  stream_capture.py
+  artifact_storage.py
+  config.yaml
+  requirements.txt
+  requirements-mcp.txt
+
+【权重 必传 ~171MB】
+  weights/worker/yolo26x_worker.pt
+  weights/worker/class_names.txt
+  weights/machinery/yolo26l_machinery.pt
+  weights/machinery/class_names.txt
+
+【服务器脚本】
+  scripts/setup_linux.sh
+  scripts/install_on_server.sh
+  scripts/run_mcp_http.sh
+  scripts/run_mcp_stdio.sh
+  scripts/test_rtmp_triple.py
+  scripts/deploy_full_to_server.ps1
+  scripts/upload_to_server.ps1
+  scripts/redownload_weights.py
+
+【可选 REST / Docker】
+  hiagent_api.py
+  openapi.yaml
+  requirements-api.txt
+  Dockerfile
+  docker-compose.yml
+  deploy/vlm-mcp.service
+
+【本地测试】
+  test_stream_detect.py
+  detect.py
+  run_detect.ps1 / run_detect.bat / run_api.ps1
+  setup_env.ps1
+  input/demo.jpg（若有）
+
+【其他文档】
+  DEPLOY.txt
+  MCP_PLUGIN.txt
+  HANDOFF_交接说明.md
+  MANIFEST.txt
+  README.md
