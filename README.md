@@ -1,3 +1,7 @@
+# 赤瞳安全智能平台 (Chitung Safety Platform)
+
+> 协作交接文档：见 [`docs/COLLABORATION_HANDOFF.md`](docs/COLLABORATION_HANDOFF.md)
+
 # FinalAgentSuite
 
 This folder is the curated final-code package for the programs under `J:\China Oversea  Final`.
