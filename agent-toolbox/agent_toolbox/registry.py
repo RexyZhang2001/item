@@ -144,6 +144,65 @@ def tool_specs() -> list[ToolSpec]:
             },
         ),
         ToolSpec(
+            name="whatsapp_auth_start",
+            description="Start local wacli WhatsApp login. Returns QR payload and/or pairing code through status polling.",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "phone": {"type": "string", "description": "Hong Kong phone number, e.g. 91234567 or +85291234567"},
+                    "mode": {"type": "string", "default": "qr"},
+                    "timeout_seconds": {"type": "integer", "default": 120},
+                },
+            },
+        ),
+        ToolSpec(
+            name="whatsapp_auth_status",
+            description="Poll current local WhatsApp/wacli login state, including QR payload or pairing code.",
+            input_schema={"type": "object", "properties": {"include_logs": {"type": "boolean", "default": True}}},
+        ),
+        ToolSpec(
+            name="whatsapp_auth_stop",
+            description="Stop the running local WhatsApp/wacli login process.",
+            input_schema={"type": "object", "properties": {"reason": {"type": "string", "default": "manual_stop"}}},
+        ),
+        ToolSpec(
+            name="whatsapp_auth_logout",
+            description="Logout local WhatsApp/wacli session after human confirmation.",
+            input_schema={"type": "object", "properties": {"confirmed": {"type": "boolean", "default": False}, "reason": {"type": "string", "default": "manual_logout"}}},
+        ),
+        ToolSpec(
+            name="whatsapp_groups_wacli",
+            description="List WhatsApp groups through local wacli (real connector; fails if wacli is not installed/logged in).",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "include_archived": {"type": "boolean", "default": False},
+                    "limit": {"type": "integer", "default": 50},
+                    "dry_run": {"type": "boolean", "default": False},
+                },
+            },
+        ),
+        ToolSpec(
+            name="whatsapp_groups_refresh",
+            description="Refresh joined WhatsApp groups live through local wacli and return the updated local list.",
+            input_schema={"type": "object", "properties": {"dry_run": {"type": "boolean", "default": False}}},
+        ),
+        ToolSpec(
+            name="whatsapp_send_text_confirmed",
+            description="Send WhatsApp text via local wacli only after human confirmation; dry_run validates the flow without sending.",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "chat": {"type": "string"},
+                    "text": {"type": "string"},
+                    "confirmed": {"type": "boolean", "default": False},
+                    "dry_run": {"type": "boolean", "default": False},
+                    "confirmed_by": {"type": "string"},
+                },
+                "required": ["chat", "text"],
+            },
+        ),
+        ToolSpec(
             name="generate_report",
             description="Generate the existing digital employee community Word report template.",
             input_schema={

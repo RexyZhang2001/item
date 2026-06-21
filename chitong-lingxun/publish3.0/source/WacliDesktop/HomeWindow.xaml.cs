@@ -63,6 +63,9 @@ public partial class HomeWindow : Window
             case "toolbox":
                 _app.Modules.Open(key, () => new ModuleShellWindow("赤瞳工具箱", new ChitungToolboxView(), 1080, 720));
                 break;
+            case "web":
+                _app.Modules.Open(key, () => new ModuleShellWindow("赤瞳网页版", new ChitungWebView(), 1320, 860));
+                break;
         }
     }
 

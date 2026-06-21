@@ -689,6 +689,104 @@ export async function getWhatsAppGroups(includeArchived = false): Promise<Record
   return response.json() as Promise<Record<string, unknown>>
 }
 
+export async function startWhatsAppAuth(request: {
+  phone?: string
+  mode?: 'qr' | 'phone'
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/auth/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      phone: request.phone,
+      mode: request.mode ?? (request.phone ? 'phone' : 'qr'),
+      timeout_seconds: 120,
+    }),
+  })
+  await ensureOk(response, 'WhatsApp auth start failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function getWhatsAppAuthStatus(includeLogs = true): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/auth/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ include_logs: includeLogs }),
+  })
+  await ensureOk(response, 'WhatsApp auth status failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function stopWhatsAppAuth(reason = 'manual_stop'): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/auth/stop`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  })
+  await ensureOk(response, 'WhatsApp auth stop failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function logoutWhatsAppAuth(confirmed = true): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/auth/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmed, reason: 'desktop_logout' }),
+  })
+  await ensureOk(response, 'WhatsApp auth logout failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function refreshWhatsAppGroups(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/groups/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  })
+  await ensureOk(response, 'WhatsApp groups refresh failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function sendWhatsAppText(request: {
+  chat: string
+  text: string
+  confirmed?: boolean
+  dryRun?: boolean
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat: request.chat,
+      text: request.text,
+      confirmed: request.confirmed ?? false,
+      dry_run: request.dryRun ?? false,
+      confirmed_by: 'desktop_user',
+    }),
+  })
+  await ensureOk(response, 'WhatsApp send failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function ingestWhatsAppSearch(request: {
+  q: string
+  chat?: string
+  limit?: number
+  autoRoute?: boolean
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/whatsapp/ingest-search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      q: request.q,
+      chat: request.chat,
+      limit: request.limit ?? 20,
+      auto_route: request.autoRoute ?? true,
+    }),
+  })
+  await ensureOk(response, 'WhatsApp ingest failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
 export async function createHybridPlan(request: {
   sessionId: string
   userInput: string

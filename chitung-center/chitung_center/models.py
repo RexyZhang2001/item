@@ -249,6 +249,40 @@ class WhatsAppGroupsApiRequest(BaseModel):
     include_archived: bool = False
 
 
+class WhatsAppAuthStartApiRequest(BaseModel):
+    phone: str | None = None
+    mode: Literal["qr", "phone"] = "qr"
+    timeout_seconds: int = Field(default=120, ge=30, le=600)
+
+
+class WhatsAppAuthStatusApiRequest(BaseModel):
+    include_logs: bool = True
+
+
+class WhatsAppAuthStopApiRequest(BaseModel):
+    reason: str = "manual_stop"
+
+
+class WhatsAppAuthLogoutApiRequest(BaseModel):
+    confirmed: bool = False
+    reason: str = "manual_logout"
+
+
+class WhatsAppSendApiRequest(BaseModel):
+    chat: str = Field(min_length=1)
+    text: str = Field(min_length=1)
+    confirmed: bool = False
+    dry_run: bool = False
+    confirmed_by: str = "desktop_user"
+
+
+class WhatsAppIngestApiRequest(BaseModel):
+    q: str = Field(min_length=1)
+    chat: str | None = None
+    limit: int = Field(default=20, ge=1, le=200)
+    auto_route: bool = True
+
+
 PlanStatus = Literal[
     "DRAFT",
     "PLANNED",

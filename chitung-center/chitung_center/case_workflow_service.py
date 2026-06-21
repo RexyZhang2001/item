@@ -88,26 +88,21 @@ async def send_rectification_notification(request: NotificationSendRequest) -> d
             "tool_results": [send_result, status],
         }
 
-    draft = await toolbox_client.call_tool(
-        "draft_group_message",
+    confirm = await toolbox_client.call_tool(
+        "whatsapp_send_text_confirmed",
         {
-            "recipients": [request.contractor or "default_contractor"],
-            "subject": f"整改通知 #{request.case_id}",
-            "body": request.text,
-            "source_case_id": request.case_id,
-            "channel": "whatsapp",
+            "chat": request.contractor or "default_contractor",
+            "text": request.text,
+            "confirmed": True,
+            "dry_run": False,
+            "confirmed_by": request.confirmed_by,
         },
     )
-    draft_id = _tool_data(draft).get("draft_id")
-    confirm = await toolbox_client.call_tool(
-        "send_group_message_with_confirm",
-        {"draft_id": draft_id, "confirmed": True, "confirmed_by": request.confirmed_by},
-    ) if draft_id else {"ok": False, "summary": "WhatsApp draft was not created.", "error": "missing draft_id"}
     status = await toolbox_client.call_tool(
         "update_safety_case_status",
         {
             "case_id": request.case_id,
-            "status": "notification_confirmed_pending_sender" if confirm.get("ok") else "notification_send_failed",
+            "status": "notification_sent_whatsapp" if confirm.get("ok") else "notification_send_failed",
             "notes": confirm.get("summary") or confirm.get("error") or "WhatsApp notification confirmed.",
         },
     )
@@ -116,7 +111,7 @@ async def send_rectification_notification(request: NotificationSendRequest) -> d
         "message": confirm.get("summary") or "WhatsApp notification confirmed.",
         "channel": request.channel,
         "send_result": confirm,
-        "tool_results": [draft, confirm, status],
+        "tool_results": [confirm, status],
     }
 
 

@@ -1,0 +1,28 @@
+<UserControl x:Class="WacliDesktop.Views.ChitungWebView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Style="{StaticResource SgCard}" Padding="8" Margin="0,0,0,8">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Content="刷新" Click="BtnReload_Click" Style="{StaticResource CompactButton}"/>
+          <Button Content="外部浏览器打开" Click="BtnOpenExternal_Click" Style="{StaticResource CompactButton}" Margin="8,0,0,0"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="赤瞳网页版" FontWeight="SemiBold" Foreground="{StaticResource SgTextBrush}"/>
+          <TextBlock x:Name="StatusText" Text="加载中…" FontSize="12" Foreground="{StaticResource SgMutedBrush}" TextWrapping="Wrap"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border Grid.Row="1" Style="{StaticResource SgCard}" Padding="0">
+      <wv2:WebView2 x:Name="ChitungWeb" DefaultBackgroundColor="#F5F6F7"/>
+    </Border>
+  </Grid>
+</UserControl>

@@ -67,6 +67,9 @@ class Settings:
     report_python: str = _str_env("REPORT_PYTHON", "python")
 
     whatsapp_archive_base_url: str = _str_env("WHATSAPP_ARCHIVE_BASE_URL", "http://127.0.0.1:8787")
+    wacli_bin: str = _str_env("WACLI_BIN", "wacli")
+    wacli_workdir: Path = _path_env("WACLI_WORKDIR", workspace / "wacli")
+    wacli_store_dir: Path = _path_env("WACLI_STORE_DIR", workspace / "wacli")
 
     feishu_webhook_url: str = _str_env("FEISHU_WEBHOOK_URL", "")
     feishu_webhook_secret: str = _str_env("FEISHU_WEBHOOK_SECRET", "")

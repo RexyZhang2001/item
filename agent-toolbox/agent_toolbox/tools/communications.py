@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from ..config import settings
 from ..models import ToolResult
+from .whatsapp import WhatsAppWacliGroupsRequest, list_groups_wacli
 
 
 class WhatsAppGroupListRequest(BaseModel):
@@ -51,6 +52,12 @@ class ChatGroupDailySummaryRequest(BaseModel):
 
 
 def list_whatsapp_groups(req: WhatsAppGroupListRequest) -> ToolResult:
+    wacli = list_groups_wacli(
+        WhatsAppWacliGroupsRequest(include_archived=req.include_archived, limit=200)
+    )
+    if wacli.ok:
+        wacli.tool = "list_whatsapp_groups"
+        return wacli
     groups = [
         {"id": "placeholder-safety-group", "name": "安全管理群（占位）", "source": "placeholder"},
         {"id": "placeholder-project-group", "name": "项目管理群（占位）", "source": "placeholder"},

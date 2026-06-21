@@ -58,6 +58,12 @@ from chitung_center.models import (
     TableMappingExtractRequest,
     TableMappingRunRequest,
     WhatsAppGroupsApiRequest,
+    WhatsAppAuthStartApiRequest,
+    WhatsAppAuthLogoutApiRequest,
+    WhatsAppAuthStatusApiRequest,
+    WhatsAppAuthStopApiRequest,
+    WhatsAppIngestApiRequest,
+    WhatsAppSendApiRequest,
     WhatsAppSearchApiRequest,
     VisualPatrolBatchRequest,
     VisualPatrolConfirmRequest,
@@ -679,6 +685,102 @@ async def whatsapp_groups_api(request: WhatsAppGroupsApiRequest) -> dict[str, ob
         {"include_archived": request.include_archived},
     )
     return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/auth/start")
+async def whatsapp_auth_start_api(request: WhatsAppAuthStartApiRequest) -> dict[str, object]:
+    result = await toolbox_client.call_tool(
+        "whatsapp_auth_start",
+        {
+            "phone": request.phone,
+            "mode": request.mode,
+            "timeout_seconds": request.timeout_seconds,
+        },
+    )
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/auth/status")
+async def whatsapp_auth_status_api(request: WhatsAppAuthStatusApiRequest) -> dict[str, object]:
+    result = await toolbox_client.call_tool(
+        "whatsapp_auth_status",
+        {"include_logs": request.include_logs},
+    )
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/auth/stop")
+async def whatsapp_auth_stop_api(request: WhatsAppAuthStopApiRequest) -> dict[str, object]:
+    result = await toolbox_client.call_tool(
+        "whatsapp_auth_stop",
+        {"reason": request.reason},
+    )
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/auth/logout")
+async def whatsapp_auth_logout_api(request: WhatsAppAuthLogoutApiRequest) -> dict[str, object]:
+    result = await toolbox_client.call_tool(
+        "whatsapp_auth_logout",
+        {"confirmed": request.confirmed, "reason": request.reason},
+    )
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/groups/refresh")
+async def whatsapp_groups_refresh_api() -> dict[str, object]:
+    result = await toolbox_client.call_tool("whatsapp_groups_refresh", {"dry_run": False})
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/send")
+async def whatsapp_send_api(request: WhatsAppSendApiRequest) -> dict[str, object]:
+    result = await toolbox_client.call_tool(
+        "whatsapp_send_text_confirmed",
+        {
+            "chat": request.chat,
+            "text": request.text,
+            "confirmed": request.confirmed,
+            "dry_run": request.dry_run,
+            "confirmed_by": request.confirmed_by,
+        },
+    )
+    return result if isinstance(result, dict) else {"ok": False, "error": "unexpected_result"}
+
+
+@app.post("/api/whatsapp/ingest-search")
+async def whatsapp_ingest_search_api(request: WhatsAppIngestApiRequest) -> dict[str, object]:
+    search_result = await toolbox_client.call_tool(
+        "whatsapp_search",
+        {"q": request.q, "chat": request.chat, "limit": request.limit},
+    )
+    rows = []
+    if isinstance(search_result.get("data"), dict):
+        data_rows = search_result["data"].get("rows")
+        if isinstance(data_rows, list):
+            rows = [row for row in data_rows if isinstance(row, dict)]
+    routed: list[dict[str, object]] = []
+    if request.auto_route:
+        for row in rows[: min(len(rows), 10)]:
+            text = str(row.get("text") or row.get("content") or "").strip()
+            if not text:
+                continue
+            chat_name = str(row.get("chat_name") or row.get("chat") or row.get("chat_id") or "whatsapp")
+            msg_id = str(row.get("message_id") or row.get("id") or "")
+            chat_request = ChatMessageRequest(
+                message=text,
+                channel="whatsapp",
+                user_id=chat_name,
+                metadata={"source": "whatsapp_search", "message_id": msg_id, "raw": row},
+            )
+            response = await orchestrator.handle_message(chat_request)
+            routed.append(response.model_dump())
+    return {
+        "ok": bool(search_result.get("ok")),
+        "search": search_result,
+        "routed_count": len(routed),
+        "routed": routed,
+    }
 
 
 # ── Yaoyao structured input endpoints ───────────────────────────

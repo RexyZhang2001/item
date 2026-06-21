@@ -95,6 +95,12 @@
                 <TextBlock Text="WhatsApp 搜索 · 隐患案例 · 表格模板" Style="{StaticResource ModuleTileDesc}"/>
               </StackPanel>
             </Button>
+            <Button Style="{StaticResource ModuleTileButton}" Tag="web" Click="ModuleTile_Click" Margin="3">
+              <StackPanel>
+                <TextBlock Text="赤瞳网页版" Style="{StaticResource ModuleTileTitle}"/>
+                <TextBlock Text="内嵌主平台 · 工作台 · WhatsApp 运维" Style="{StaticResource ModuleTileDesc}"/>
+              </StackPanel>
+            </Button>
           </UniformGrid>
         </StackPanel>
       </DockPanel>
