@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# Repository root (the folder that contains agent-toolbox, vlm-detection, etc.).
+# Used to build cross-platform default paths so the toolbox runs without a .env.
+REPO = ROOT.parent
 load_dotenv(ROOT / ".env")
 
 
@@ -49,22 +52,22 @@ class Settings:
 
     vlm_detection_dir: Path = _path_env(
         "VLM_DETECTION_DIR",
-        Path(r"J:\China Oversea  Final\VLM Detection"),
+        REPO / "vlm-detection",
     )
-    vlm_python: str = _str_env("VLM_PYTHON", "python")
+    vlm_python: str = _str_env("VLM_PYTHON", "python3")
 
     rtmp_snapshot_script: Path = _path_env(
         "RTMP_SNAPSHOT_SCRIPT",
-        Path(r"J:\China Oversea  Final\3311 AI\rtmp_snapshot.py"),
+        REPO / "rtmp-tools" / "rtmp_snapshot.py",
     )
-    rtmp_python: str = _str_env("RTMP_PYTHON", "python")
+    rtmp_python: str = _str_env("RTMP_PYTHON", "python3")
     default_rtmp_url: str = _str_env("DEFAULT_RTMP_URL", "rtmp://10.148.1.22/live/test")
 
     report_script: Path = _path_env(
         "REPORT_SCRIPT",
-        Path(r"J:\China Oversea  Final\3311 AI\generate_community_doc.py"),
+        REPO / "report-generators" / "generate_community_doc.py",
     )
-    report_python: str = _str_env("REPORT_PYTHON", "python")
+    report_python: str = _str_env("REPORT_PYTHON", "python3")
 
     whatsapp_archive_base_url: str = _str_env("WHATSAPP_ARCHIVE_BASE_URL", "http://127.0.0.1:8787")
     wacli_bin: str = _str_env("WACLI_BIN", "wacli")
