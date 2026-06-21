@@ -27,6 +27,28 @@
       "electron/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "../chitung-center",
+        "to": "chitung-center",
+        "filter": [
+          "**/*",
+          "!data/**",
+          "!__pycache__/**",
+          "!**/__pycache__/**"
+        ]
+      },
+      {
+        "from": "../agent-toolbox",
+        "to": "agent-toolbox",
+        "filter": [
+          "**/*",
+          "!workspace/**",
+          "!__pycache__/**",
+          "!**/__pycache__/**"
+        ]
+      }
+    ],
     "win": {
       "target": [
         "nsis"
@@ -34,7 +56,8 @@
     }
   },
   "dependencies": {
-    "vue": "^3.5.34"
+    "vue": "^3.5.34",
+    "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.12.3",

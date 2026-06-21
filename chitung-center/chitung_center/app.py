@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+import subprocess
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -47,14 +49,21 @@ from chitung_center.models import (
     HybridPlanRequest,
     LlmSettingsRequest,
     NotificationSendRequest,
+    RagQueryRequest,
     ReportGenerateRequest,
+    SkillEnableRequest,
+    SkillImportRequest,
     SmartFormAcceptRequest,
     SmartFormDraftRequest,
+    TableMappingExtractRequest,
+    TableMappingRunRequest,
     WhatsAppGroupsApiRequest,
     WhatsAppSearchApiRequest,
     VisualPatrolBatchRequest,
     VisualPatrolConfirmRequest,
     VisualPatrolDraftRequest,
+    WorkflowEnableRequest,
+    WorkflowImportRequest,
     WorkflowRunRequest,
     YaoyaoConfirmRequest,
     YaoyaoStructuredDraftRequest,
@@ -62,6 +71,7 @@ from chitung_center.models import (
     YaoyaoTemplateSaveRequest,
 )
 from chitung_center.orchestrator import orchestrator
+from chitung_center.rag_service import RagDependencyError, RagServiceError, rag_service
 from chitung_center.runtime_service import build_runtime_status
 from chitung_center.report_service import generate_report_file
 from chitung_center.settings_service import (
@@ -73,6 +83,13 @@ from chitung_center.settings_service import (
 )
 from chitung_center.skills import skill_loader
 from chitung_center.smart_form_service import accept_smart_form_draft, build_smart_form_draft
+from chitung_center.table_mapping_service import (
+    TableMappingError,
+    extract_table_mapping_fields,
+    get_table_mapping_form,
+    list_table_mapping_forms,
+    run_table_mapping_fill,
+)
 from chitung_center.toolbox_client import toolbox_client
 from chitung_center.visual_patrol_service import build_visual_patrol_draft, confirm_visual_patrol_candidate
 from chitung_center.visual_patrol_batch_service import (
@@ -84,6 +101,7 @@ from chitung_center.visual_patrol_batch_service import (
 )
 from chitung_center.workbench_service import build_workbench_summary, update_hazard_status
 from chitung_center.workflow_engine import workflow_engine
+from chitung_center.workflows import workflow_loader
 from chitung_center.yaoyao_structured_service import (
     build_yaoyao_structured_draft,
     confirm_yaoyao_structured_draft,
@@ -104,6 +122,12 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:5173",
         "http://localhost:5173",
+        "http://127.0.0.1:5176",
+        "http://localhost:5176",
+        "http://127.0.0.1:5178",
+        "http://localhost:5178",
+        "file://",
+        "null",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -132,9 +156,41 @@ async def skills() -> dict[str, object]:
     from chitung_center.skills import INTENT_TO_SKILL
 
     return {
-        "items": [skill.__dict__ for skill in skill_loader.list_skills()],
+        "items": [skill.to_dict() for skill in skill_loader.list_skills()],
         "intent_bindings": INTENT_TO_SKILL,
     }
+
+
+@app.post("/api/skills/import")
+async def skill_import(request: SkillImportRequest) -> dict[str, object]:
+    imported = skill_loader.import_skill(request.name, request.content)
+    if not imported:
+        raise HTTPException(status_code=400, detail="Invalid Skill import payload.")
+    return {"ok": True, "item": imported.to_dict()}
+
+
+@app.post("/api/skills/{name}/toggle")
+async def skill_toggle(name: str, request: SkillEnableRequest) -> dict[str, object]:
+    if not skill_loader.set_enabled(name, request.enabled):
+        raise HTTPException(status_code=404, detail=f"Skill not found: {name}")
+    return {"ok": True, "name": name, "enabled": request.enabled}
+
+
+@app.put("/api/skills/{name}/enabled")
+async def skill_toggle_compat(name: str, request: SkillEnableRequest) -> dict[str, object]:
+    return await skill_toggle(name, request)
+
+
+@app.delete("/api/skills/{name}")
+async def skill_delete(name: str) -> dict[str, object]:
+    info = skill_loader.get_info(name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Skill not found: {name}")
+    if info.category != "external":
+        raise HTTPException(status_code=403, detail="Only external Skills can be deleted.")
+    if not skill_loader.delete_skill(name):
+        raise HTTPException(status_code=500, detail=f"Failed to delete Skill: {name}")
+    return {"ok": True, "name": name}
 
 
 @app.get("/api/skills/{name}")
@@ -142,7 +198,8 @@ async def skill_detail(name: str) -> dict[str, object]:
     content = skill_loader.read_skill(name)
     if content is None:
         raise HTTPException(status_code=404, detail=f"Skill not found: {name}")
-    return {"name": name, "content": content}
+    info = skill_loader.get_info(name)
+    return {"name": name, "content": content, "meta": info.to_dict() if info else None}
 
 
 @app.get("/api/workbench/summary")
@@ -238,6 +295,47 @@ async def docmate_apply(request: DocmateApplyRequest) -> dict[str, object]:
 @app.post("/api/docmate/pipeline")
 async def docmate_pipeline(request: DocmatePipelineRequest) -> dict[str, object]:
     return await pipeline_edit(request.file_path, request.instruction, request.save_as, request.context)
+
+
+@app.get("/api/docmate/table-mapping/forms")
+async def docmate_table_mapping_forms() -> dict[str, object]:
+    try:
+        return list_table_mapping_forms()
+    except TableMappingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/docmate/table-mapping/forms/{form_id}")
+async def docmate_table_mapping_form(form_id: str) -> dict[str, object]:
+    try:
+        return get_table_mapping_form(form_id)
+    except TableMappingError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/docmate/table-mapping/extract")
+async def docmate_table_mapping_extract(request: TableMappingExtractRequest) -> dict[str, object]:
+    try:
+        return extract_table_mapping_fields(request.file_path, request.form_id)
+    except TableMappingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/docmate/table-mapping/run")
+async def docmate_table_mapping_run(request: TableMappingRunRequest) -> dict[str, object]:
+    try:
+        return run_table_mapping_fill(
+            file_path=request.file_path,
+            form_id=request.form_id,
+            fields=request.fields,
+            action=request.action,
+            screenshot=request.screenshot,
+            dry_run=request.dry_run,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise HTTPException(status_code=504, detail="Table mapping script timed out.") from exc
+    except TableMappingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/forms/smart-draft")
@@ -390,6 +488,19 @@ async def feishu_events(request: FeishuEventWebhookRequest) -> dict[str, object]
     return result
 
 
+@app.get("/api/workflows")
+async def workflows() -> dict[str, object]:
+    return {"ok": True, "items": [item.to_dict() for item in workflow_loader.list_workflows()]}
+
+
+@app.post("/api/workflows/import")
+async def workflow_import(request: WorkflowImportRequest) -> dict[str, object]:
+    imported = workflow_loader.import_workflow(request.name, request.content)
+    if not imported:
+        raise HTTPException(status_code=400, detail="Invalid Workflow import payload.")
+    return {"ok": True, "item": imported.to_dict()}
+
+
 @app.get("/api/workflows/templates")
 async def workflow_templates_list() -> dict[str, object]:
     return {"ok": True, "items": await workflow_engine.list_templates()}
@@ -406,9 +517,92 @@ async def workflow_run(request: WorkflowRunRequest) -> dict[str, object]:
     return await workflow_engine.run_template(request.workflow_name, chat_request)
 
 
-@app.get("/api/workflows/{workflow_run_id}")
+@app.get("/api/workflow-runs/{workflow_run_id}")
 async def workflow_run_get(workflow_run_id: str) -> dict[str, object]:
     return await workflow_engine.get_run(workflow_run_id)
+
+
+@app.post("/api/workflows/{name}/toggle")
+async def workflow_toggle(name: str, request: WorkflowEnableRequest) -> dict[str, object]:
+    if not workflow_loader.set_enabled(name, request.enabled):
+        raise HTTPException(status_code=404, detail=f"Workflow not found: {name}")
+    return {"ok": True, "name": name, "enabled": request.enabled}
+
+
+@app.put("/api/workflows/{name}/enabled")
+async def workflow_toggle_compat(name: str, request: WorkflowEnableRequest) -> dict[str, object]:
+    return await workflow_toggle(name, request)
+
+
+@app.delete("/api/workflows/{name}")
+async def workflow_delete(name: str) -> dict[str, object]:
+    info = workflow_loader.get_info(name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Workflow not found: {name}")
+    if info.category != "external":
+        raise HTTPException(status_code=403, detail="Only external Workflows can be deleted.")
+    if not workflow_loader.delete_workflow(name):
+        raise HTTPException(status_code=500, detail=f"Failed to delete Workflow: {name}")
+    return {"ok": True, "name": name}
+
+
+@app.get("/api/workflows/{name}")
+async def workflow_detail(name: str) -> dict[str, object]:
+    content = workflow_loader.read_workflow(name)
+    if content is None:
+        return await workflow_engine.get_run(name)
+    info = workflow_loader.get_info(name)
+    return {"name": name, "content": content, "meta": info.to_dict() if info else None}
+
+
+@app.post("/api/rag/documents/upload")
+async def rag_document_upload(
+    file: UploadFile = File(...),
+    collection: str = Form("default"),
+) -> dict[str, object]:
+    try:
+        return await rag_service.upload_document(file, collection=collection)
+    except RagDependencyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RagServiceError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/rag/documents")
+async def rag_documents() -> dict[str, object]:
+    return rag_service.list_documents()
+
+
+@app.delete("/api/rag/documents/{doc_id}")
+async def rag_document_delete(doc_id: str) -> dict[str, object]:
+    try:
+        return rag_service.delete_document(doc_id)
+    except RagDependencyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RagServiceError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/rag/query")
+async def rag_query(request: RagQueryRequest) -> dict[str, object]:
+    try:
+        return await rag_service.query(
+            query=request.query,
+            top_k=request.top_k,
+            collection=request.collection,
+        )
+    except RagDependencyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RagServiceError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/rag/stats")
+async def rag_stats() -> dict[str, object]:
+    try:
+        return rag_service.stats()
+    except RagDependencyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post("/plan")

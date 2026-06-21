@@ -92,6 +92,14 @@ p {
   display: flex;
   height: calc(100vh - 56px);
   min-height: 0;
+  overflow: hidden;
+}
+
+.app-content {
+  background: var(--bg-page);
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
 }
 
 .topbar {

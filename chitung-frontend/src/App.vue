@@ -1,34 +1,66 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue'
-import HazardLedgerPage from './pages/HazardLedgerPage.vue'
-import ShanshanDocPage from './pages/ShanshanDocPage.vue'
-import YaoyaoStructuredInputPage from './pages/YaoyaoStructuredInputPage.vue'
-import Sidebar from './components/layout/Sidebar.vue'
+import { provide, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ActivityBar from './components/layout/ActivityBar.vue'
+import ChatbotPanel from './components/layout/ChatbotPanel.vue'
+import PanelSidebar from './components/layout/PanelSidebar.vue'
 import TopBar from './components/layout/TopBar.vue'
-import SmartFormPage from './pages/SmartFormPage.vue'
-import VisualPatrolPage from './pages/VisualPatrolPage.vue'
-import PendingConfirmationsPage from './pages/PendingConfirmationsPage.vue'
-import WorkbenchPage from './pages/WorkbenchPage.vue'
 import { confirmationsRefreshKey, navigateKey, type AppPage } from './composables/useAppNavigation'
 
-const currentPage = ref<AppPage>('workbench')
-const confirmationsRefreshTick = ref(0)
+const route = useRoute()
+const router = useRouter()
 
-function handleNavigate(page: string) {
-  if (
-    page === 'workbench'
-    || page === 'pending-confirmations'
-    || page === 'hazard-ledger'
-    || page === 'visual-patrol'
-    || page === 'smart-form'
-    || page === 'shanshan-doc'
-    || page === 'yaoyao-structured-input'
-  ) {
-    currentPage.value = page
-  }
+function deducePanel(path: string): string {
+  if (path.startsWith('/guardian')) return 'guardian'
+  if (path.startsWith('/docmate')) return 'docmate'
+  if (path.startsWith('/lingxun')) return 'lingxun'
+  if (path.startsWith('/center')) return 'center'
+  if (path.startsWith('/yaoyao')) return 'yaoyao'
+  return 'guardian'
 }
 
-provide(navigateKey, handleNavigate)
+const activePanel = ref(deducePanel(route.path))
+const chatbotVisible = ref(false)
+const confirmationsRefreshTick = ref(0)
+
+const firstPaths: Record<string, string> = {
+  guardian: '/guardian/dashboard',
+  docmate: '/docmate/documents',
+  lingxun: '/lingxun/whatsapp',
+  center: '/center/settings',
+  yaoyao: '/yaoyao/structured',
+}
+
+watch(
+  () => route.path,
+  (path) => {
+    activePanel.value = deducePanel(path)
+  },
+)
+
+function handlePanelSelect(panel: string) {
+  if (panel === 'chatbot') {
+    chatbotVisible.value = !chatbotVisible.value
+    return
+  }
+  activePanel.value = panel
+  router.push(firstPaths[panel] || firstPaths.guardian)
+}
+
+function handleLegacyNavigate(page: AppPage) {
+  const routes: Record<AppPage, string> = {
+    workbench: '/guardian/dashboard',
+    'pending-confirmations': '/guardian/confirmations',
+    'hazard-ledger': '/guardian/hazards',
+    'visual-patrol': '/guardian/patrol',
+    'smart-form': '/docmate/forms',
+    'shanshan-doc': '/docmate/documents',
+    'yaoyao-structured-input': '/yaoyao/structured',
+  }
+  router.push(routes[page] || firstPaths.guardian)
+}
+
+provide(navigateKey, handleLegacyNavigate)
 provide(confirmationsRefreshKey, confirmationsRefreshTick)
 </script>
 
@@ -36,17 +68,12 @@ provide(confirmationsRefreshKey, confirmationsRefreshTick)
   <div class="app-shell">
     <TopBar />
     <div class="app-shell__body">
-      <Sidebar :current-page="currentPage" @navigate="handleNavigate" />
-      <WorkbenchPage v-if="currentPage === 'workbench'" />
-      <PendingConfirmationsPage
-        v-else-if="currentPage === 'pending-confirmations'"
-        :refresh-tick="confirmationsRefreshTick"
-      />
-      <HazardLedgerPage v-else-if="currentPage === 'hazard-ledger'" />
-      <VisualPatrolPage v-else-if="currentPage === 'visual-patrol'" />
-      <SmartFormPage v-else-if="currentPage === 'smart-form'" />
-      <ShanshanDocPage v-else-if="currentPage === 'shanshan-doc'" />
-      <YaoyaoStructuredInputPage v-else-if="currentPage === 'yaoyao-structured-input'" />
+      <ActivityBar :active-panel="activePanel" @select="handlePanelSelect" />
+      <PanelSidebar :active-panel="activePanel" />
+      <main class="app-content">
+        <router-view />
+      </main>
+      <ChatbotPanel :visible="chatbotVisible" @toggle="chatbotVisible = !chatbotVisible" />
     </div>
   </div>
 </template>

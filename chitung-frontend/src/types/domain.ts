@@ -493,6 +493,50 @@ export interface DocmateSessionState {
   error: string | null
 }
 
+export interface TableMappingFieldDef {
+  name: string
+  type?: string
+  required?: boolean
+}
+
+export interface TableMappingForm {
+  id: string
+  name: string
+  category?: string
+  fields: TableMappingFieldDef[]
+}
+
+export interface TableMappingExtractedField {
+  value: string
+  source: string
+  confidence: number
+}
+
+export interface TableMappingExtractResult {
+  ok: boolean
+  form: TableMappingForm
+  source_path: string
+  fields: Record<string, TableMappingExtractedField>
+  matched_count: number
+  document_preview: string
+  script_available: boolean
+}
+
+export interface TableMappingRunResult {
+  ok: boolean
+  job_id: string
+  dry_run: boolean
+  form: TableMappingForm
+  source_path: string
+  fields: Record<string, string>
+  extracted: Record<string, TableMappingExtractedField>
+  command: string[]
+  exit_code?: number
+  duration_ms?: number
+  stdout?: string
+  stderr?: string
+}
+
 // ── Yaoyao (structured input / OCR) types ──────────────────────
 
 export interface YaoyaoRegion {
@@ -557,4 +601,77 @@ export interface YaoyaoTemplateListItem {
   created_at: string
   region_count: number
   row_count: number
+}
+
+export interface SkillInfo {
+  name: string
+  path: string
+  summary: string
+  enabled?: boolean
+  category?: string
+  status?: 'done' | 'ready' | 'dep' | 'later'
+  phase?: string
+  tools?: string[]
+  workflow?: string
+}
+
+export interface SkillDetail {
+  name: string
+  content: string
+}
+
+export interface WorkflowTemplateInfo {
+  workflow_name: string
+  title: string
+  description: string
+  intent: string
+  step_count: number
+}
+
+export interface WorkflowInfo {
+  name: string
+  path: string
+  summary: string
+  enabled: boolean
+  category: string
+  status: string
+  phase: string
+  priority?: string
+  triggers?: string
+  agents?: string
+  steps?: Array<Record<string, unknown>>
+  existing_tools?: string[]
+  pending_tools?: string[]
+}
+
+export interface WorkflowDetail {
+  name: string
+  content: string
+  meta?: WorkflowInfo | null
+}
+
+export interface RagDocument {
+  doc_id: string
+  file_name: string
+  file_type: string
+  chunk_count: number
+  collection?: string
+  created_at: string
+}
+
+export interface RagQueryMatch {
+  text: string
+  source_file_name: string
+  doc_id: string
+  chunk_index: number
+  collection: string
+  score?: number | null
+}
+
+export interface RagStats {
+  ok: boolean
+  document_count: number
+  chunk_count: number
+  vector_count: number
+  chroma_dir?: string
 }

@@ -660,7 +660,9 @@ async function openSmartFormRevision(templateId?: string) {
     aiMessages.value.unshift('赤瞳：已完成模板搜索、字段预填和 DOCX 草稿生成，点击采纳后才写入表单记录。')
   } catch (error) {
     smartFormDraft.value = null
-    documentRevision.value = { ...documentRevision.value, status: 'draft' }
+    if (documentRevision.value) {
+      documentRevision.value = { ...documentRevision.value, status: 'draft' }
+    }
     workflowSteps.value = [
       { id: 'intent', label: '识别意图', status: 'done' },
       { id: 'tool', label: '生成文档 Diff', status: 'done' },

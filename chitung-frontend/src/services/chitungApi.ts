@@ -16,11 +16,22 @@ import type {
   SafetyCaseRecord,
   SmartFormDraft,
   SmartFormTemplate,
+  SkillDetail,
+  SkillInfo,
   VisualPatrolDraft,
   PatrolRunReport,
   PatrolRunSummary,
   PendingConfirmation,
+  RagDocument,
+  RagQueryMatch,
+  RagStats,
+  TableMappingExtractResult,
+  TableMappingForm,
+  TableMappingRunResult,
   WorkbenchSummary,
+  WorkflowDetail,
+  WorkflowInfo,
+  WorkflowTemplateInfo,
   YaoyaoConfirmResult,
   YaoyaoRegion,
   YaoyaoStructuredDraft,
@@ -73,6 +84,174 @@ export async function sendChatMessage(request: SendMessageRequest): Promise<Chat
       auditId: data.audit_id,
     },
   }
+}
+
+export async function getSkills(): Promise<SkillInfo[]> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/skills`)
+  await ensureOk(response, 'Skills list failed')
+  const data = (await response.json()) as { items?: SkillInfo[] }
+  return data.items ?? []
+}
+
+export async function getSkillDetail(name: string): Promise<SkillDetail> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/skills/${encodeURIComponent(name)}`)
+  await ensureOk(response, 'Skill detail failed')
+  return response.json() as Promise<SkillDetail>
+}
+
+export async function toggleSkill(name: string, enabled: boolean): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/skills/${encodeURIComponent(name)}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+  await ensureOk(response, 'Skill toggle failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function importSkill(name: string, content: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/skills/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  })
+  await ensureOk(response, 'Skill import failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function deleteSkill(name: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/skills/${encodeURIComponent(name)}`, {
+    method: 'DELETE',
+  })
+  await ensureOk(response, 'Skill delete failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function getWorkflows(): Promise<WorkflowInfo[]> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows`)
+  await ensureOk(response, 'Workflows list failed')
+  const data = (await response.json()) as { items?: WorkflowInfo[] }
+  return data.items ?? []
+}
+
+export async function getWorkflowDetail(name: string): Promise<WorkflowDetail> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/${encodeURIComponent(name)}`)
+  await ensureOk(response, 'Workflow detail failed')
+  return response.json() as Promise<WorkflowDetail>
+}
+
+export async function toggleWorkflow(name: string, enabled: boolean): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/${encodeURIComponent(name)}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+  await ensureOk(response, 'Workflow toggle failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function importWorkflow(name: string, content: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  })
+  await ensureOk(response, 'Workflow import failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function deleteWorkflow(name: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/${encodeURIComponent(name)}`, {
+    method: 'DELETE',
+  })
+  await ensureOk(response, 'Workflow delete failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function getWorkflowTemplates(): Promise<WorkflowTemplateInfo[]> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/templates`)
+  await ensureOk(response, 'Workflow templates failed')
+  const data = (await response.json()) as { items?: WorkflowTemplateInfo[] }
+  return data.items ?? []
+}
+
+export async function runWorkflowTemplate(request: {
+  workflowName: string
+  message?: string
+  channel?: string
+  userId?: string
+  metadata?: Record<string, unknown>
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/workflows/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      workflow_name: request.workflowName,
+      message: request.message ?? '从赤瞳工作流库手动运行',
+      channel: request.channel ?? 'local_web',
+      user_id: request.userId ?? 'local_user',
+      metadata: request.metadata ?? {},
+    }),
+  })
+  await ensureOk(response, 'Workflow run failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function uploadRagDocument(file: File, collection = 'default'): Promise<{
+  ok: boolean
+  doc_id: string
+  chunk_count: number
+  file_name: string
+}> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('collection', collection)
+  const response = await fetch(`${CENTER_BASE_URL}/api/rag/documents/upload`, {
+    method: 'POST',
+    body: form,
+  })
+  await ensureOk(response, 'RAG document upload failed')
+  return response.json() as Promise<{ ok: boolean; doc_id: string; chunk_count: number; file_name: string }>
+}
+
+export async function listRagDocuments(): Promise<RagDocument[]> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/rag/documents`)
+  await ensureOk(response, 'RAG documents list failed')
+  const data = (await response.json()) as { items?: RagDocument[] }
+  return data.items ?? []
+}
+
+export async function deleteRagDocument(docId: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/rag/documents/${encodeURIComponent(docId)}`, {
+    method: 'DELETE',
+  })
+  await ensureOk(response, 'RAG document delete failed')
+  return response.json() as Promise<Record<string, unknown>>
+}
+
+export async function queryRag(request: {
+  query: string
+  topK?: number
+  collection?: string
+}): Promise<RagQueryMatch[]> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/rag/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: request.query,
+      top_k: request.topK ?? 5,
+      collection: request.collection || undefined,
+    }),
+  })
+  await ensureOk(response, 'RAG query failed')
+  const data = (await response.json()) as { items?: RagQueryMatch[] }
+  return data.items ?? []
+}
+
+export async function getRagStats(): Promise<RagStats> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/rag/stats`)
+  await ensureOk(response, 'RAG stats failed')
+  return response.json() as Promise<RagStats>
 }
 
 export async function getHealth(): Promise<Record<string, unknown>> {
@@ -660,6 +839,65 @@ export async function docmateApply(payload: {
   })
   await ensureOk(response, 'Docmate apply failed')
   return response.json() as Promise<DocmateApplyResult>
+}
+
+export async function listTableMappingForms(): Promise<{
+  scriptAvailable: boolean
+  scriptDir: string
+  items: TableMappingForm[]
+}> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/docmate/table-mapping/forms`)
+  await ensureOk(response, 'Table mapping forms failed')
+  const data = (await response.json()) as {
+    script_available?: boolean
+    script_dir?: string
+    items?: TableMappingForm[]
+  }
+  return {
+    scriptAvailable: Boolean(data.script_available),
+    scriptDir: data.script_dir ?? '',
+    items: data.items ?? [],
+  }
+}
+
+export async function extractTableMappingFields(request: {
+  filePath: string
+  formId: string
+}): Promise<TableMappingExtractResult> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/docmate/table-mapping/extract`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      file_path: request.filePath,
+      form_id: request.formId,
+    }),
+  })
+  await ensureOk(response, 'Table mapping extract failed')
+  return response.json() as Promise<TableMappingExtractResult>
+}
+
+export async function runTableMappingFill(request: {
+  filePath: string
+  formId: string
+  fields?: Record<string, string>
+  action?: 'draft' | 'save_draft'
+  screenshot?: boolean
+  dryRun?: boolean
+}): Promise<TableMappingRunResult> {
+  const response = await fetch(`${CENTER_BASE_URL}/api/docmate/table-mapping/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      file_path: request.filePath,
+      form_id: request.formId,
+      fields: request.fields,
+      action: request.action ?? 'draft',
+      screenshot: request.screenshot ?? true,
+      dry_run: request.dryRun ?? false,
+    }),
+  })
+  await ensureOk(response, 'Table mapping run failed')
+  return response.json() as Promise<TableMappingRunResult>
 }
 
 // ?? Yaoyao (structured input / OCR) API ????????????????????????

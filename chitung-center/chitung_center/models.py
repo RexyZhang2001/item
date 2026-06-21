@@ -215,6 +215,30 @@ class ToolCallPlan(BaseModel):
     requires_confirmation: bool = False
 
 
+class SkillEnableRequest(BaseModel):
+    enabled: bool
+
+
+class SkillImportRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=80)
+    content: str = Field(..., min_length=1)
+
+
+class WorkflowEnableRequest(BaseModel):
+    enabled: bool
+
+
+class WorkflowImportRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=80)
+    content: str = Field(..., min_length=1)
+
+
+class RagQueryRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    top_k: int = Field(default=5, ge=1, le=20)
+    collection: str | None = Field(default=None, max_length=80)
+
+
 class WhatsAppSearchApiRequest(BaseModel):
     q: str = Field(min_length=1)
     chat: str | None = None
@@ -349,6 +373,20 @@ class DocmatePipelineRequest(BaseModel):
     instruction: str = Field(..., description="用户编辑指令")
     save_as: Optional[str] = Field(default=None, description="输出文件路径（可选）")
     context: Optional[str] = Field(default=None, description="额外上下文（文本）")
+
+
+class TableMappingExtractRequest(BaseModel):
+    file_path: str = Field(..., description=".docx 文件路径")
+    form_id: str = Field(..., description="C-SMART 表单 ID，如 4.2")
+
+
+class TableMappingRunRequest(BaseModel):
+    file_path: str = Field(..., description=".docx 文件路径")
+    form_id: str = Field(..., description="C-SMART 表单 ID，如 4.2")
+    fields: dict[str, str] | None = Field(default=None, description="用户确认后的字段值；为空时自动抽取")
+    action: str = Field(default="draft", description="当前支持 draft/save_draft")
+    screenshot: bool = Field(default=True, description="执行后保存截图")
+    dry_run: bool = Field(default=False, description="只预览命令和映射，不执行 Playwright")
 
 
 # ── Yaoyao structured input models ─────────────────────────────

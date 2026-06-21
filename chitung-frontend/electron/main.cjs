@@ -12,6 +12,9 @@ function getPreloadPath() {
 }
 
 function getSuiteRoot() {
+  if (app.isPackaged) {
+    return process.resourcesPath
+  }
   return path.resolve(__dirname, '..', '..')
 }
 
